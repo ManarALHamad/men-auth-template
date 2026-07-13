@@ -1,0 +1,74 @@
+const User = require('../models/user')
+const bcrypt = require('bcrypt')
+const home = (req, res) => {
+    res.send('Welcome!')
+}
+
+const showSignUpForm = (req, res) => {
+
+    
+    res.render('auth/sign-up.ejs')
+}
+
+
+const signUp = async (req, res) => {
+
+    const userInDatabase = await User.findOne({
+
+        username: req.body.username
+    })
+    if (userInDatabase){
+
+        return res.send('Username already taken')
+    }
+    let userData = {}
+    userData.username = req.body.username
+
+    const hashedPassword = bcrypt.hashSync(req.body.password, 10)
+
+    userData.password = hashedPassword
+    
+    const user = await User.create(userData)
+    res.send(user)
+}
+
+const showSignInform=(req,res)=>{
+
+  res.render('auth/sign-in.ejs')
+
+}
+
+const signIn = async (req, res) => {
+
+    const userInDatabase = await User.findOne({
+
+        username: req.body.username
+    })
+    if (!userInDatabase){
+
+        return res.send('does not exist')
+    }
+
+    const validPassword = bcrypt.compareSync(req.body.password, userInDatabase.password);
+
+    if(!validPassword){
+
+        return res.send('login failed, please try again')
+    }
+
+}
+
+
+
+
+
+
+module.exports = {
+    home,
+    showSignUpForm,
+    signUp,
+    showSignInform,
+    signIn,
+
+}
+
