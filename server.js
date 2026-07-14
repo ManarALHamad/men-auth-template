@@ -6,7 +6,9 @@ const app = express();
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const morgan = require("morgan");
-const authCtrl = require ('./controllers/auth');
+const session = require('express-session')
+
+const authCtrl = require('./controllers/auth')
 
 // Set the port from environment variable or default to 3000
 const port = process.env.PORT ? process.env.PORT : "3000";
@@ -24,19 +26,33 @@ app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride("_method"));
 // Morgan for logging HTTP requests
 app.use(morgan('dev'));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+}))
 
-
-
-// GET /
-app.get("/", async (req, res) => {
-  res.render('home.ejs');
-});
+app.get('/', (req, res) => {
+    res.render('home.ejs', {
+        user: req.session.user,
+    })
+})
 
 app.get('/auth/home', authCtrl.home)
-app.get('/auth/sign-up', authCtrl.showSignUpForm)
+app.get('/auth/sign-up', authCtrl.showSignUpForm )
 app.post('/auth/sign-up', authCtrl.signUp)
-app.get('/auth/sign-in',authCtrl.showSignInform)
-app.post('/auth/sign-in' ,authCtrl.signIn)
+app.get('/auth/sign-in', authCtrl.showSignInForm)
+app.post('/auth/sign-in', authCtrl.signIn)
+app.delete('/auth/sign-out', authCtrl.signOut)
+
+app.get('/dashboard', async (req, res) => {
+    if (!req.session.user){
+        return res.redirect('/auth/sign-in')
+    }
+    res.render('dashboard.ejs', {
+      user: req.session.user
+    })
+})
 
 app.listen(port, () => {
   console.log(`The express app is ready on port ${port}!`);
