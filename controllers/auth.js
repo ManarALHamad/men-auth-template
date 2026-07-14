@@ -26,7 +26,20 @@ const signUp = async (req, res) => {
 
     const user = await User.create(userData)
     res.send(user)
+
+    req.session.user = {
+        username: userInDatabase.username,
+        _id: userInDatabase._id
+    }
+    req.session.save(() => {
+
+        res.redirect('/')
+
+    })
 }
+
+
+
 
 const showSignInForm = (req, res) => {
     res.render('auth/sign-in.ejs')
@@ -51,12 +64,17 @@ const signIn = async (req, res) => {
         username: userInDatabase.username,
         _id: userInDatabase._id
     }
+    req.session.save(() => {
 
-    res.redirect('/')
+        res.redirect('/')
+
+    })
+    
 }
 
 
 const signOut = async (req, res) => {
+
     req.session.destroy()
     res.redirect('/')
 }
